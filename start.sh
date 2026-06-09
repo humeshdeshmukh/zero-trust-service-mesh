@@ -82,6 +82,19 @@ print_step "6/6: Applying ClusterMesh notes"
 kubectl apply -f cilium/clustermesh.yaml || true
 echo -e "${GREEN}[OK] Baseline resources applied.${NC}"
 
+print_step "7/7: Starting local React dashboard"
+if command -v python3 >/dev/null 2>&1; then
+  DASHBOARD_PORT="${DASHBOARD_PORT:-8787}"
+  if [[ -f /tmp/zero-trust-dashboard.pid ]] && kill -0 "$(cat /tmp/zero-trust-dashboard.pid)" >/dev/null 2>&1; then
+    echo -e "${GREEN}[OK] Dashboard already running at http://127.0.0.1:${DASHBOARD_PORT}/${NC}"
+  else
+    PORT="${DASHBOARD_PORT}" bash dashboard/serve.sh
+    echo -e "${GREEN}[OK] Dashboard server started on http://127.0.0.1:${DASHBOARD_PORT}/${NC}"
+  fi
+else
+  echo -e "${YELLOW}[WARN] python3 not found. Dashboard server was not started.${NC}"
+fi
+
 echo -e "\n${GREEN}============================================================${NC}"
 echo -e "${GREEN}ZERO-TRUST SERVICE MESH BASELINE DEPLOYED${NC}"
 echo -e "${GREEN}============================================================${NC}"
@@ -92,7 +105,7 @@ echo -e "- Ingress host URL: http://billing.local/checkout"
 echo -e "- Ingress admin URL: http://billing.local/admin"
 echo -e "- Local port-forward (new terminal): kubectl -n mesh-demo port-forward svc/billing 8080:8080"
 echo -e "- Then open: http://127.0.0.1:8080/checkout"
-echo -e "- Dashboard: file://${SCRIPT_DIR// /%20}/dashboard/index.html"
+echo -e "- Dashboard: http://127.0.0.1:${DASHBOARD_PORT:-8787}/"
 echo -e "- SPIRE server config: kubectl -n spire get configmap spire-server-config -o yaml"
 echo -e "- ClusterMesh hints: kubectl -n kube-system get configmap clustermesh-hints -o yaml"
 echo -e ""
