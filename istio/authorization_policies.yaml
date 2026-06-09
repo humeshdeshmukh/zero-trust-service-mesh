@@ -1,0 +1,54 @@
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default-strict-mtls
+  namespace: mesh-demo
+spec:
+  mtls:
+    mode: STRICT
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: billing-istio-mtls
+  namespace: mesh-demo
+spec:
+  host: billing.mesh-demo.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: billing-allow-frontend-checkout
+  namespace: mesh-demo
+spec:
+  selector:
+    matchLabels:
+      app: billing
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/mesh-demo/sa/frontend-sa
+      to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths: ["/checkout", "/checkout/*"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: billing-deny-admin
+  namespace: mesh-demo
+spec:
+  selector:
+    matchLabels:
+      app: billing
+  action: DENY
+  rules:
+    - to:
+        - operation:
+            paths: ["/admin", "/admin/*"]

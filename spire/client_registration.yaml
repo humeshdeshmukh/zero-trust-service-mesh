@@ -1,0 +1,23 @@
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterSPIFFEID
+metadata:
+  name: billing-spiffeid
+spec:
+  className: spire-server
+  spiffeIDTemplate: spiffe://healthtech.local/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
+  podSelector:
+    matchLabels:
+      app: billing
+  dnsNameTemplates:
+    - "{{ .PodMeta.Name }}.mesh-demo.svc.cluster.local"
+---
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterSPIFFEID
+metadata:
+  name: frontend-spiffeid
+spec:
+  className: spire-server
+  spiffeIDTemplate: spiffe://healthtech.local/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
+  podSelector:
+    matchLabels:
+      app: frontend

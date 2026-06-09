@@ -1,0 +1,35 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: mesh-demo-ingress
+  namespace: mesh-demo
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "billing.local"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: billing-vs
+  namespace: mesh-demo
+spec:
+  hosts:
+    - "billing.local"
+  gateways:
+    - mesh-demo-ingress
+  http:
+    - match:
+        - uri:
+            prefix: /
+      route:
+        - destination:
+            host: billing.mesh-demo.svc.cluster.local
+            port:
+              number: 8080

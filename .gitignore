@@ -1,0 +1,43 @@
+# OS and editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and runtime
+*.log
+*.out
+*.err
+*.pid
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.crt
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+build/
+
+# Terraform and IaC cache
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+
+# Test artifacts
+coverage/
+coverage.xml

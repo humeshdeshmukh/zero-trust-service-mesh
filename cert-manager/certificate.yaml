@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: billing-workload-cert
+  namespace: mesh-demo
+spec:
+  secretName: billing-workload-tls
+  commonName: spiffe://healthtech.local/ns/mesh-demo/sa/billing-sa
+  dnsNames:
+    - billing.mesh-demo.svc.cluster.local
+  issuerRef:
+    kind: ClusterIssuer
+    name: vault-issuer
+  duration: 24h
+  renewBefore: 6h

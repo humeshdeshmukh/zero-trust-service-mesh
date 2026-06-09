@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clustermesh-hints
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: cilium
+    app.kubernetes.io/part-of: clustermesh
+    project: zero-trust-service-mesh
+
+data:
+  README: |
+    This file documents the minimum Cilium ClusterMesh values for multi-cluster setup.
+    Apply with Helm values (example):
+
+      cluster:
+        name: cluster-a
+        id: 1
+      clustermesh:
+        useAPIServer: true
+      hubble:
+        relay:
+          enabled: true
+        ui:
+          enabled: true
+
+    Then run:
+      cilium clustermesh enable --context <cluster-a-context>
+      cilium clustermesh connect --context <cluster-a-context> --destination-context <cluster-b-context>

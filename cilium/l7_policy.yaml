@@ -1,0 +1,25 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: billing-l7-zero-trust
+  namespace: mesh-demo
+spec:
+  endpointSelector:
+    matchLabels:
+      app: billing
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app: frontend
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+          rules:
+            http:
+              - method: "GET"
+                path: "^/checkout(/.*)?$"
+              - method: "POST"
+                path: "^/checkout(/.*)?$"
+              - method: "GET"
+                path: "^/health$"
