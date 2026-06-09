@@ -11,6 +11,12 @@ This project showcases a complete zero-trust architecture for regulated healthca
 - Security model: mTLS + SPIFFE identity + L7 policy enforcement.
 - Platform model: Multi-cluster-ready with Cilium ClusterMesh patterns.
 
+## Flagship Dashboard
+
+The repo includes a dedicated operations dashboard in [dashboard/index.html](dashboard/index.html) that presents the direct access links, validation runbook, and control matrix in a polished, interview-ready layout.
+
+Open it directly from disk or from the browser after running `./start.sh`.
+
 ## Recruiter Snapshot (Infographic)
 
 | Capability | What I Built | Proof in Repo |
@@ -20,6 +26,7 @@ This project showcases a complete zero-trust architecture for regulated healthca
 | Route-Level Authorization | Allow /checkout, deny /admin | istio/authorization_policies.yaml |
 | Kernel L7 Enforcement | eBPF HTTP method and path policy | cilium/l7_policy.yaml |
 | PKI Automation | Vault-backed issuer with cert-manager | cert-manager/vault-issuer.yaml |
+| Operations Dashboard | Flagship control-center UI | dashboard/index.html |
 | Deployment Automation | One-command apply and teardown | start.sh and stop.sh |
 
 ## Architecture Diagram
@@ -96,6 +103,8 @@ pie showData
 ├── kubernetes/
 │   ├── namespaces.yaml
 │   └── sample-apps.yaml
+├── dashboard/
+│   └── index.html
 ├── spire/
 │   ├── client_registration.yaml
 │   └── server_config.yaml
@@ -119,6 +128,8 @@ cd 17-zero-trust-service-mesh
 chmod +x start.sh stop.sh
 ./start.sh
 ```
+
+After deployment, open [dashboard/index.html](dashboard/index.html) for the full operations view.
 
 ## Validation Commands
 
