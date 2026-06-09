@@ -41,13 +41,25 @@ kubectl -n mesh-demo rollout status deployment/rogue --timeout=120s
 echo -e "${GREEN}[OK] Demo workloads ready.${NC}"
 
 print_step "3/6: Applying Istio mTLS and auth policies"
-kubectl apply -f istio/authorization_policies.yaml
-kubectl apply -f istio/gateway.yaml
-echo -e "${GREEN}[OK] Istio policies applied.${NC}"
+if kubectl get crd peerauthentications.security.istio.io >/dev/null 2>&1 && \
+   kubectl get crd destinationrules.networking.istio.io >/dev/null 2>&1 && \
+   kubectl get crd authorizationpolicies.security.istio.io >/dev/null 2>&1 && \
+   kubectl get crd gateways.networking.istio.io >/dev/null 2>&1 && \
+   kubectl get crd virtualservices.networking.istio.io >/dev/null 2>&1; then
+  kubectl apply -f istio/authorization_policies.yaml
+  kubectl apply -f istio/gateway.yaml
+  echo -e "${GREEN}[OK] Istio policies applied.${NC}"
+else
+  echo -e "${YELLOW}[WARN] Istio CRDs not found. Skipping istio/authorization_policies.yaml and istio/gateway.yaml.${NC}"
+fi
 
 print_step "4/6: Applying Cilium L7 policy"
-kubectl apply -f cilium/l7_policy.yaml
-echo -e "${GREEN}[OK] Cilium policy applied.${NC}"
+if kubectl get crd ciliumnetworkpolicies.cilium.io >/dev/null 2>&1; then
+  kubectl apply -f cilium/l7_policy.yaml
+  echo -e "${GREEN}[OK] Cilium policy applied.${NC}"
+else
+  echo -e "${YELLOW}[WARN] Cilium CRDs not found. Skipping cilium/l7_policy.yaml.${NC}"
+fi
 
 print_step "5/6: Applying SPIRE and cert-manager manifests (best effort)"
 if kubectl get crd clusterspiffeids.spire.spiffe.io >/dev/null 2>&1; then

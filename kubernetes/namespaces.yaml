@@ -11,3 +11,8 @@ metadata:
   name: mesh-demo
   labels:
     istio-injection: enabled
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: spire
