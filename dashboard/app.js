@@ -1,5 +1,7 @@
 const { useEffect, useMemo, useState } = React;
 
+const dashboardUrl = "http://127.0.0.1:8787/";
+
 const accessLinks = [
   {
     name: "Ingress checkout",
@@ -51,197 +53,334 @@ const controls = [
 
 function App() {
   const [time, setTime] = useState(() => new Date());
+  const [copiedValue, setCopiedValue] = useState("");
 
   useEffect(() => {
     const timer = window.setInterval(() => setTime(new Date()), 1000);
     return () => window.clearInterval(timer);
   }, []);
 
-  const uptime = useMemo(() => {
-    return time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  }, [time]);
+  useEffect(() => {
+    if (!copiedValue) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => setCopiedValue(""), 1800);
+    return () => window.clearTimeout(timer);
+  }, [copiedValue]);
+
+  const uptime = useMemo(
+    () => time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+    [time]
+  );
+
+  const copyText = async (value, label) => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(value);
+      } else {
+        const helper = document.createElement("textarea");
+        helper.value = value;
+        helper.setAttribute("readonly", "true");
+        helper.style.position = "absolute";
+        helper.style.left = "-9999px";
+        document.body.appendChild(helper);
+        helper.select();
+        document.execCommand("copy");
+        helper.remove();
+      }
+
+      setCopiedValue(label);
+    } catch (error) {
+      setCopiedValue(`Copy failed for ${label}`);
+    }
+  };
+
+  const openExternal = (url) => {
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const renderAccessItem = (link) => {
+    const isHttpLink = link.url.startsWith("http");
+
+    return React.createElement(
+      "div",
+      { key: link.name, className: "link-card" },
+      React.createElement(
+        "button",
+        {
+          type: "button",
+          className: "link-card-main",
+          onClick: () => {
+            if (isHttpLink) {
+              openExternal(link.url);
+            } else {
+              copyText(link.url, link.name);
+            }
+          },
+        },
+        React.createElement("strong", null, link.name),
+        React.createElement("span", null, link.note),
+        React.createElement("code", null, link.url)
+      ),
+      React.createElement(
+        "div",
+        { className: "link-actions" },
+        isHttpLink
+          ? React.createElement(
+              "button",
+              {
+                type: "button",
+                className: "mini-button primary",
+                onClick: () => openExternal(link.url),
+              },
+              "Open"
+            )
+          : null,
+        React.createElement(
+          "button",
+          {
+            type: "button",
+            className: "mini-button",
+            onClick: () => copyText(link.url, link.name),
+          },
+          "Copy"
+        )
+      )
+    );
+  };
 
   return React.createElement(
     React.Fragment,
     null,
     React.createElement(
-      'main',
-      { className: 'page' },
+      "main",
+      { className: "page" },
       React.createElement(
-        'section',
-        { className: 'hero' },
+        "header",
+        { className: "topbar" },
         React.createElement(
-          'article',
-          { className: 'hero-card' },
-          React.createElement('div', { className: 'eyebrow' }, 'Flagship Operations Dashboard'),
-          React.createElement('h1', null, 'Zero-Trust Service Mesh'),
+          "div",
+          { className: "brand" },
+          React.createElement("div", { className: "brand-mark" }, "ZT"),
           React.createElement(
-            'p',
-            { className: 'lede' },
-            'A polished control center for the portfolio project: identity, transport security, route authorization, and kernel enforcement all presented as one advanced demo.'
-          ),
-          React.createElement(
-            'div',
-            { className: 'hero-actions' },
-            React.createElement('a', { className: 'button primary', href: '#access' }, 'Open access links'),
-            React.createElement('a', { className: 'button', href: '#runbook' }, 'Run the validation flow'),
-            React.createElement('a', { className: 'button', href: '#matrix' }, 'Review the control matrix')
+            "div",
+            null,
+            React.createElement("div", { className: "brand-title" }, "Zero-Trust Service Mesh"),
+            React.createElement("div", { className: "brand-subtitle" }, "Flagship React dashboard and operations view")
           )
         ),
         React.createElement(
-          'div',
-          { className: 'side-stack' },
+          "nav",
+          { className: "topnav", "aria-label": "Dashboard sections" },
+          React.createElement("a", { href: "#access" }, "Access"),
+          React.createElement("a", { href: "#runbook" }, "Runbook"),
+          React.createElement("a", { href: "#matrix" }, "Matrix")
+        ),
+        React.createElement(
+          "div",
+          { className: "topbar-meta" },
+          React.createElement("span", { className: "status-pill success" }, "Live local server"),
+          React.createElement("span", { className: "status-pill" }, dashboardUrl)
+        )
+      ),
+      React.createElement(
+        "section",
+        { className: "hero" },
+        React.createElement(
+          "article",
+          { className: "hero-card" },
+          React.createElement("div", { className: "eyebrow" }, "Flagship Operations Dashboard"),
+          React.createElement("h1", null, "Zero-Trust Service Mesh"),
           React.createElement(
-            'div',
-            { className: 'metric-grid' },
+            "p",
+            { className: "lede" },
+            "A polished control center for the portfolio project: identity, transport security, route authorization, and kernel enforcement all presented as one advanced demo."
+          ),
+          React.createElement(
+            "div",
+            { className: "hero-pills" },
+            React.createElement("span", { className: "status-pill success" }, "React UI"),
+            React.createElement("span", { className: "status-pill" }, "Zero-build runtime"),
+            React.createElement("span", { className: "status-pill" }, "Interview-ready")
+          ),
+          React.createElement(
+            "div",
+            { className: "hero-actions" },
+            React.createElement("a", { className: "button primary", href: "#access" }, "Open access links"),
+            React.createElement("a", { className: "button", href: "#runbook" }, "Run the validation flow"),
+            React.createElement("a", { className: "button", href: "#matrix" }, "Review the control matrix")
+          )
+        ),
+        React.createElement(
+          "div",
+          { className: "side-stack" },
+          React.createElement(
+            "div",
+            { className: "metric-grid" },
             React.createElement(
-              'div',
-              { className: 'metric' },
-              React.createElement('div', { className: 'label' }, 'Mesh layers'),
-              React.createElement('div', { className: 'value' }, '5'),
-              React.createElement('div', { className: 'meta' }, 'Identity, transport, authz, kernel policy, and PKI automation.')
+              "div",
+              { className: "metric" },
+              React.createElement("div", { className: "label" }, "Mesh layers"),
+              React.createElement("div", { className: "value" }, "5"),
+              React.createElement("div", { className: "meta" }, "Identity, transport, authz, kernel policy, and PKI automation.")
             ),
             React.createElement(
-              'div',
-              { className: 'metric' },
-              React.createElement('div', { className: 'label' }, 'Demo state'),
-              React.createElement('div', { className: 'value' }, 'Ready'),
-              React.createElement('div', { className: 'meta' }, 'The baseline deploy completes even when optional CRDs are absent.')
+              "div",
+              { className: "metric" },
+              React.createElement("div", { className: "label" }, "Demo state"),
+              React.createElement("div", { className: "value" }, "Ready"),
+              React.createElement("div", { className: "meta" }, "The baseline deploy completes even when optional CRDs are absent.")
             ),
             React.createElement(
-              'div',
-              { className: 'metric' },
-              React.createElement('div', { className: 'label' }, 'Direct links'),
-              React.createElement('div', { className: 'value' }, '4'),
-              React.createElement('div', { className: 'meta' }, 'Ingress, in-cluster service, port-forward, and local dashboard entry points.')
+              "div",
+              { className: "metric" },
+              React.createElement("div", { className: "label" }, "Direct links"),
+              React.createElement("div", { className: "value" }, "4"),
+              React.createElement("div", { className: "meta" }, "Ingress, in-cluster service, port-forward, and local dashboard entry points.")
             ),
             React.createElement(
-              'div',
-              { className: 'metric' },
-              React.createElement('div', { className: 'label' }, 'Clock'),
-              React.createElement('div', { className: 'value' }, uptime),
-              React.createElement('div', { className: 'meta' }, 'Dashboard rendered locally with React and a zero-build runtime.')
+              "div",
+              { className: "metric" },
+              React.createElement("div", { className: "label" }, "Clock"),
+              React.createElement("div", { className: "value" }, uptime),
+              React.createElement("div", { className: "meta" }, "Dashboard rendered locally with React and a zero-build runtime.")
             )
           ),
           React.createElement(
-            'div',
-            { className: 'panel', id: 'access' },
-            React.createElement('h2', null, 'Direct access'),
+            "div",
+            { className: "panel", id: "access" },
             React.createElement(
-              'div',
-              { className: 'link-list' },
-              accessLinks.map((link) =>
-                React.createElement(
-                  'a',
-                  { key: link.name, className: 'link-card', href: link.url, target: link.url.startsWith('http') ? '_blank' : '_self', rel: 'noreferrer' },
-                  React.createElement('div', null, React.createElement('strong', null, link.name), React.createElement('span', null, link.note)),
-                  React.createElement('span', null, link.url)
-                )
-              )
-            )
+              "div",
+              { className: "section-title compact" },
+              React.createElement(
+                "div",
+                null,
+                React.createElement("h2", null, "Direct access"),
+                React.createElement("p", null, "Open or copy the real endpoints and operator commands.")
+              ),
+              React.createElement("span", { className: "status-pill success small" }, copiedValue || "Ready")
+            ),
+            React.createElement("div", { className: "link-list" }, accessLinks.map(renderAccessItem))
           )
         )
       ),
       React.createElement(
-        'section',
-        { className: 'layout' },
+        "section",
+        { className: "layout" },
         React.createElement(
-          'div',
-          { className: 'section-grid' },
+          "div",
+          { className: "section-grid" },
           React.createElement(
-            'article',
-            { className: 'glass-card panel', id: 'runbook' },
+            "article",
+            { className: "glass-card panel", id: "runbook" },
             React.createElement(
-              'div',
-              { className: 'section-title' },
-              React.createElement('div', null, React.createElement('h2', null, 'Validation runbook'), React.createElement('p', null, 'Turn the project into a working interview demo in under a minute.')),
-              React.createElement('span', { className: 'status-dot' }, 'Baseline deployed')
+              "div",
+              { className: "section-title compact" },
+              React.createElement(
+                "div",
+                null,
+                React.createElement("h2", null, "Validation runbook"),
+                React.createElement("p", null, "Turn the project into a working interview demo in under a minute.")
+              ),
+              React.createElement("span", { className: "status-dot" }, "Baseline deployed")
             ),
             React.createElement(
-              'div',
-              { className: 'runbook' },
+              "div",
+              { className: "runbook" },
               runbook.map((step, index) =>
                 React.createElement(
-                  'div',
-                  { className: 'step', key: step.title },
-                  React.createElement('div', { className: 'step-number' }, String(index + 1)),
+                  "div",
+                  { className: "step", key: step.title },
+                  React.createElement("div", { className: "step-number" }, String(index + 1)),
                   React.createElement(
-                    'div',
+                    "div",
                     null,
-                    React.createElement('h3', null, step.title),
-                    React.createElement('p', null, step.description),
-                    React.createElement('div', { className: 'command' }, step.command)
+                    React.createElement("h3", null, step.title),
+                    React.createElement("p", null, step.description),
+                    React.createElement("div", { className: "command" }, step.command)
                   )
                 )
               )
             )
           ),
           React.createElement(
-            'article',
-            { className: 'glass-card panel' },
+            "article",
+            { className: "glass-card panel" },
             React.createElement(
-              'div',
-              { className: 'section-title' },
-              React.createElement('div', null, React.createElement('h2', null, 'Operator shortcuts'), React.createElement('p', null, 'Fast links for proving the platform story live.'))
+              "div",
+              { className: "section-title compact" },
+              React.createElement("div", null, React.createElement("h2", null, "Operator shortcuts"), React.createElement("p", null, "Fast links for proving the platform story live."))
             ),
             React.createElement(
-              'div',
-              { className: 'chip-row' },
-              React.createElement('span', { className: 'chip' }, 'kubectl -n mesh-demo get pods'),
-              React.createElement('span', { className: 'chip' }, 'kubectl -n spire get configmap spire-server-config -o yaml'),
-              React.createElement('span', { className: 'chip' }, 'kubectl -n kube-system get configmap clustermesh-hints -o yaml'),
-              React.createElement('span', { className: 'chip' }, 'istioctl authn tls-check billing.mesh-demo.svc.cluster.local -n mesh-demo'),
-              React.createElement('span', { className: 'chip' }, 'kubectl -n mesh-demo port-forward svc/billing 8080:8080')
+              "div",
+              { className: "chip-row" },
+              React.createElement("span", { className: "chip" }, "kubectl -n mesh-demo get pods"),
+              React.createElement("span", { className: "chip" }, "kubectl -n spire get configmap spire-server-config -o yaml"),
+              React.createElement("span", { className: "chip" }, "kubectl -n kube-system get configmap clustermesh-hints -o yaml"),
+              React.createElement("span", { className: "chip" }, "istioctl authn tls-check billing.mesh-demo.svc.cluster.local -n mesh-demo"),
+              React.createElement("span", { className: "chip" }, "kubectl -n mesh-demo port-forward svc/billing 8080:8080")
             )
           )
         ),
         React.createElement(
-          'aside',
-          { className: 'section-grid' },
+          "aside",
+          { className: "section-grid" },
           React.createElement(
-            'article',
-            { className: 'glass-card panel', id: 'matrix' },
+            "article",
+            { className: "glass-card panel", id: "matrix" },
             React.createElement(
-              'div',
-              { className: 'section-title' },
-              React.createElement('div', null, React.createElement('h2', null, 'Control matrix'), React.createElement('p', null, 'What each layer contributes to the overall posture.'))
+              "div",
+              { className: "section-title compact" },
+              React.createElement(
+                "div",
+                null,
+                React.createElement("h2", null, "Control matrix"),
+                React.createElement("p", null, "What each layer contributes to the overall posture.")
+              )
             ),
             React.createElement(
-              'table',
-              { className: 'matrix' },
+              "table",
+              { className: "matrix" },
               React.createElement(
-                'thead',
+                "thead",
                 null,
-                React.createElement('tr', null, React.createElement('th', null, 'Layer'), React.createElement('th', null, 'Tooling'), React.createElement('th', null, 'Outcome'))
+                React.createElement("tr", null, React.createElement("th", null, "Layer"), React.createElement("th", null, "Tooling"), React.createElement("th", null, "Outcome"))
               ),
               React.createElement(
-                'tbody',
+                "tbody",
                 null,
-                controls.map((row) => React.createElement('tr', { key: row[0] }, React.createElement('td', null, row[0]), React.createElement('td', null, row[1]), React.createElement('td', null, row[2])))
+                controls.map((row) => React.createElement("tr", { key: row[0] }, React.createElement("td", null, row[0]), React.createElement("td", null, row[1]), React.createElement("td", null, row[2])))
               )
             )
           ),
           React.createElement(
-            'article',
-            { className: 'glass-card panel' },
+            "article",
+            { className: "glass-card panel" },
             React.createElement(
-              'div',
-              { className: 'section-title' },
-              React.createElement('div', null, React.createElement('h2', null, 'Project positioning'), React.createElement('p', null, 'How to present it as a flagship portfolio piece.'))
+              "div",
+              { className: "section-title compact" },
+              React.createElement("div", null, React.createElement("h2", null, "Project positioning"), React.createElement("p", null, "How to present it as a flagship portfolio piece."))
             ),
             React.createElement(
-              'div',
-              { className: 'runbook' },
-              React.createElement('div', { className: 'step' }, React.createElement('div', { className: 'step-number' }, 'A'), React.createElement('div', null, React.createElement('h3', null, 'Multi-layer security story'), React.createElement('p', null, 'Shows defense-in-depth from identity all the way to eBPF network policy.'))),
-              React.createElement('div', { className: 'step' }, React.createElement('div', { className: 'step-number' }, 'B'), React.createElement('div', null, React.createElement('h3', null, 'Operational polish'), React.createElement('p', null, 'One command bootstrap, graceful best-effort behavior, and a real dashboard.'))),
-              React.createElement('div', { className: 'step' }, React.createElement('div', { className: 'step-number' }, 'C'), React.createElement('div', null, React.createElement('h3', null, 'Interview-ready proof'), React.createElement('p', null, 'Direct links, validation commands, and a concise control matrix tell the story fast.')))
+              "div",
+              { className: "runbook" },
+              React.createElement("div", { className: "step" }, React.createElement("div", { className: "step-number" }, "A"), React.createElement("div", null, React.createElement("h3", null, "Multi-layer security story"), React.createElement("p", null, "Shows defense-in-depth from identity all the way to eBPF network policy."))),
+              React.createElement("div", { className: "step" }, React.createElement("div", { className: "step-number" }, "B"), React.createElement("div", null, React.createElement("h3", null, "Operational polish"), React.createElement("p", null, "One command bootstrap, graceful best-effort behavior, and a real dashboard."))),
+              React.createElement("div", { className: "step" }, React.createElement("div", { className: "step-number" }, "C"), React.createElement("div", null, React.createElement("h3", null, "Interview-ready proof"), React.createElement("p", null, "Direct links, validation commands, and a concise control matrix tell the story fast.")))
             )
           )
         )
       ),
-      React.createElement('footer', { className: 'footer' }, React.createElement('div', null, 'Zero-Trust Service Mesh Dashboard'), React.createElement('div', null, 'Served locally by the project bootstrap script.'))
+      React.createElement(
+        "footer",
+        { className: "footer" },
+        React.createElement("div", null, "Zero-Trust Service Mesh Dashboard"),
+        React.createElement("div", null, "Served locally by the project bootstrap script."),
+        React.createElement("div", null, "Updated live at ", React.createElement("a", { href: dashboardUrl }, dashboardUrl))
+      )
     )
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
