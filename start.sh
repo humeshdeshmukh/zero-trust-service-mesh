@@ -18,6 +18,24 @@ require_cmd() {
   fi
 }
 
+bootstrap_secret_from_env() {
+  local namespace="$1"
+  local secret_name="$2"
+  local env_var_name="$3"
+  local key_name="$4"
+  local secret_value="${!env_var_name:-}"
+
+  if [[ -z "${secret_value}" ]]; then
+    echo -e "${YELLOW}[WARN] ${env_var_name} is not set. Skipping ${namespace}/${secret_name}.${NC}"
+    return 0
+  fi
+
+  kubectl -n "${namespace}" create secret generic "${secret_name}" \
+    --from-literal="${key_name}=${secret_value}" \
+    --dry-run=client -o yaml | kubectl apply -f - >/dev/null
+  echo -e "${GREEN}[OK] Stored ${env_var_name} in secret ${namespace}/${secret_name}.${NC}"
+}
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${SCRIPT_DIR}"
 
@@ -28,6 +46,10 @@ echo -e "${YELLOW}Checking cluster connectivity...${NC}"
 kubectl version --client >/dev/null
 kubectl cluster-info --request-timeout=5s >/dev/null 2>&1
 echo -e "${GREEN}[OK] kubectl can reach the cluster.${NC}"
+
+print_step "0/6: Loading optional credentials"
+bootstrap_secret_from_env mesh-system vault-token VAULT_TOKEN token
+bootstrap_secret_from_env spire spire-join-token SPIRE_JOIN_TOKEN token
 
 print_step "1/6: Creating namespaces"
 kubectl apply -f kubernetes/namespaces.yaml
@@ -126,3 +148,6 @@ echo -e "${YELLOW}Credentials and secrets:${NC}"
 echo -e "- Set credentials through environment variables, not in this file:"
 echo -e "  export VAULT_TOKEN=\"<your-token>\""
 echo -e "  export SPIRE_JOIN_TOKEN=\"<your-token>\""
+echo -e "- When set, they are stored as Kubernetes Secrets:"
+echo -e "  mesh-system/vault-token"
+echo -e "  spire/spire-join-token"

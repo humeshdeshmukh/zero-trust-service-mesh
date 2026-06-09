@@ -125,6 +125,9 @@ pie showData
 - Istio installed (sidecar mode).
 - Cilium installed with policy enforcement enabled.
 - Optional: SPIRE operator and cert-manager installed.
+- Optional runtime credentials:
+    - `VAULT_TOKEN` to bootstrap a demo Vault token Secret.
+    - `SPIRE_JOIN_TOKEN` to bootstrap a demo SPIRE join-token Secret.
 
 ## Quick Start
 
@@ -135,6 +138,11 @@ chmod +x start.sh stop.sh
 ```
 
 After deployment, open `http://127.0.0.1:8787/` for the full operations view.
+
+If you set the optional env vars before running `./start.sh`, the script stores them as Kubernetes Secrets:
+
+- `mesh-system/vault-token`
+- `spire/spire-join-token`
 
 ## Validation Commands
 
